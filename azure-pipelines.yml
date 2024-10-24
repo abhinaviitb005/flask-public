@@ -1,0 +1,60 @@
+trigger:
+  branches:
+    include:
+      - development
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.9'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+              addToPath: true
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+
+          - script: |
+              pytest
+            displayName: 'Run Tests'
+
+  - stage: Deploy_Development
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/development')
+    jobs:
+      - deployment: DevelopmentDeployment
+        environment: Development
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '<Azure_Service_Connection>'
+                    appName: '<your-dev-app-service-name>'
+                    package: $(System.DefaultWorkingDirectory)/**/*.zip
+
+  - stage: Deploy_Production
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    jobs:
+      - deployment: ProductionDeployment
+        environment: Production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '<Azure_Service_Connection>'
+                    appName: '<your-prod-app-service-name>'
+                    package: $(System.DefaultWorkingDirectory)/**/*.zip
