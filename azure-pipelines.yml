@@ -8,7 +8,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  pythonVersion: '3.9'
+  pythonVersion: '3.11'
 
 stages:
   - stage: Build
@@ -40,8 +40,8 @@ stages:
               steps:
                 - task: AzureWebApp@1
                   inputs:
-                    azureSubscription: '<Azure_Service_Connection>'
-                    appName: '<your-dev-app-service-name>'
+                    azureSubscription: 'Azure subscription 1'
+                    appName: 'flaskapp-deploy-test'
                     package: $(System.DefaultWorkingDirectory)/**/*.zip
 
   - stage: Deploy_Production
@@ -55,6 +55,6 @@ stages:
               steps:
                 - task: AzureWebApp@1
                   inputs:
-                    azureSubscription: '<Azure_Service_Connection>'
-                    appName: '<your-prod-app-service-name>'
+                    azureSubscription: 'Azure subscription 1'
+                    appName: 'flaskapp-deplpoy-prod'
                     package: $(System.DefaultWorkingDirectory)/**/*.zip
